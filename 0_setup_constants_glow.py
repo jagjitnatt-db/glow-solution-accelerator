@@ -47,11 +47,12 @@ import matplotlib.pyplot as plt
 # COMMAND ----------
 
 #genotype matrix
-n_samples = 50000
-n_variants = 1000
+n_samples = 150000
+n_variants = 500000
 
 #partitions
-n_partitions = int(n_variants / 20) #good heuristic is 20 variants per partition at 500k samples
+#n_partitions = int(n_variants / 20) #good heuristic is 20 variants per partition at 500k samples
+n_partitions = max(6, int((n_samples * n_variants) / 1000000) + 1) #good heuristic is 20 variants per partition at 500k samples
 
 #allele frequency
 allele_freq_cutoff = 0.05
@@ -80,7 +81,7 @@ wgr_fraction = 0.025
 
 
 #chromosomes
-contigs = ['21', '22']
+contigs = ['1','22']
 
 # COMMAND ----------
 

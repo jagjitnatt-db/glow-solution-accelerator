@@ -78,19 +78,22 @@ offsets.head(5)
 
 # COMMAND ----------
 
+
 start_time_linreg = time.time()
 
 for num, contig in enumerate(contigs):
   offsets_chr = offsets[offsets['contigName'] == contig].drop(['contigName'], axis=1) 
   results = glow.gwas.linear_regression(
-    delta_vcf.where(fx.col('contigName') == contig),
+    delta_vcf.where(fx.col('contigName') == contig).repartition(10000),
     phenotypes,
     covariates,
     offsets_chr,
     values_column='values',
     # In addition to filtering the DataFrame, hint to Glow that the input only contains one contig
     contigs=[contig])
-  
+    
+  spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
+  spark.conf.set("spark.databricks.photon.scan.batchSize", 20)
   results.write.format('delta'). \
                 mode('append'). \
                 save(linear_gwas_results_path_confounded)
@@ -173,9 +176,11 @@ def filter_genotypes(genotypes_df, list_sample_ids):
   return a filtered_genotypes dataframe with samples from that list
   """
   sample_subset='\' , \''.join(list_sample_ids)
-  filtered_genotypes=genotypes_df.selectExpr("*", "filter(genotypes, g -> array_contains(array('{0}'), g.sampleId)) as genotypes2".format(sample_subset)).\
-                                  drop("genotypes").\
-                                  withColumnRenamed("genotypes2", "genotypes")
+#  filtered_genotypes=genotypes_df.repartition(int(n_partitions/20)).selectExpr("*", "filter(genotypes, g -> array_contains(array('{0}'), g.sampleId)) as genotypes2".format(sample_subset)).\
+#                                  drop("genotypes").\
+#                                  withColumnRenamed("genotypes2", "genotypes")
+  filtered_genotypes=genotypes_df.withColumn("genotypes", fx.expr("transform(genotypes, g -> case when array_contains(array('{0}'),g.sampleId) then g else Null end) as transformed".format(sample_subset))). \
+      withColumn("genotypes", fx.expr("filter(genotypes, g -> g is not null)"))
   return filtered_genotypes
 
 # COMMAND ----------
@@ -184,6 +189,11 @@ def filter_genotypes(genotypes_df, list_sample_ids):
 # MAGIC ##### filter genotypes
 # MAGIC 
 # MAGIC based on samples with missing phenotypes
+
+# COMMAND ----------
+
+spark.conf.set("spark.databricks.photon.scan.batchSize", 25)
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
 
 # COMMAND ----------
 
@@ -217,7 +227,7 @@ dbutils.fs.rm(linear_gwas_results_path, recurse=True)
 for num, contig in enumerate(contigs):
   offsets_chr = offsets[offsets['contigName'] == contig].drop(['contigName'], axis=1) 
   results = glow.gwas.linear_regression(
-    filtered_genotypes_df.where(fx.col('contigName') == contig),
+    filtered_genotypes_df.where(fx.col('contigName') == contig).repartition(10000),
     filtered_phenotypes_pdf,
     covariates,
     offsets_chr,

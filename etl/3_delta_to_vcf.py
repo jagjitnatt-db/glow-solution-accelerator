@@ -44,8 +44,8 @@ spark.read.format("delta").load(output_delta) \
 
 # COMMAND ----------
 
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
 spark.read.format("delta").load(output_delta) \
-                          .repartition(n_partitions) \
                           .write \
                           .mode("overwrite") \
                           .format("bigvcf") \

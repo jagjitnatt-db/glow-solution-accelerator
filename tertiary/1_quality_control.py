@@ -35,6 +35,10 @@
 # COMMAND ----------
 
 spark.conf.set("spark.sql.codegen.wholeStage", False)
+spark.conf.set("spark.sql.optimizer.nestedSchemaPruning.enabled", True)
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
+spark.conf.set("spark.databricks.photon.scan.batchSize", 25)
+spark.conf.set("io.compression.codecs", "io.projectglow.sql.util.BGZFCodec")
 
 # COMMAND ----------
 
@@ -167,6 +171,11 @@ log_metadata(datetime, n_samples, n_variants, 0, 0, 'etl', step2, library, spark
 # COMMAND ----------
 
 start_time = time.time()
+spark.conf.set("spark.sql.codegen.wholeStage", False)
+spark.conf.set("spark.sql.optimizer.nestedSchemaPruning.enabled", True)
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
+spark.conf.set("spark.databricks.photon.scan.batchSize", 25)
+spark.conf.set("io.compression.codecs", "io.projectglow.sql.util.BGZFCodec")
 delta_vcf = spark.read.format("delta").load(output_delta_split_multiallelics_normalize)
 delta_gwas_vcf = (delta_vcf.withColumn('values', glow.mean_substitute(glow.genotype_states('genotypes'))). \
                   filter(fx.size(fx.array_distinct('values')) > 1)
@@ -222,10 +231,12 @@ display(plot_histogram(df=summary_stats_df.select("log10pValueHwe"),
 
 # COMMAND ----------
 
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
+spark.conf.set("spark.databricks.photon.scan.batchSize", 25)
 start_time = time.time()
 variant_filter_df = spark.read.format("delta").load(output_delta_glow_qc_variants)
 
-variant_filter_df = summary_stats_df.where((fx.col("alleleFrequencies").getItem(0) >= allele_freq_cutoff) & 
+variant_filter_df = variant_filter_df.where((fx.col("alleleFrequencies").getItem(0) >= allele_freq_cutoff) & 
                                            (fx.col("alleleFrequencies").getItem(0) <= (1.0 - allele_freq_cutoff)) &
                                            (fx.col("pValueHwe") >= hwe_cutoff)
                                           )
@@ -234,7 +245,3 @@ variant_filter_df.write.option("overwriteSchema", "true").mode("overwrite").form
 
 end_time = time.time()
 log_metadata(datetime, n_samples, n_variants, 0, 0, method, step5, library, spark_version, node_type_id, n_workers, start_time, end_time, run_metadata_delta_path)
-
-# COMMAND ----------
-
-spark.read.format('delta').load(output_delta_transformed).count()

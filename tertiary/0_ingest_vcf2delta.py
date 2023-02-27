@@ -33,10 +33,12 @@ datetime = datetime.now(pytz.timezone('US/Pacific'))
 # COMMAND ----------
 
 start_time = time.time()
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
 
 # COMMAND ----------
 
 spark.read.format("vcf").load(output_vcf) \
+                        .repartition(int(n_partitions/10)) \
                         .write \
                         .format("delta") \
                         .mode("overwrite") \

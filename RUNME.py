@@ -32,9 +32,13 @@ from solacc.companion import NotebookSolutionCompanion
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 from dbacademy.dbgems import get_username
-docker_username = dbutils.secrets.get("solution-accelerator-cicd", "docker_username") # this secret scope is set up to enable testing only in Databricks' internal environment; please set up secret scope with your own credential
-docker_password = dbutils.secrets.get("solution-accelerator-cicd", "docker_password") # this secret scope is set up to enable testing only in Databricks' internal environment; please set up secret scope with your own credential
+docker_username = dbutils.secrets.get("hls-genomics", "glow-sa-username") # this secret scope is set up to enable testing only in Databricks' internal environment; please set up secret scope with your own credential
+docker_password = dbutils.secrets.get("hls-genomics", "glow-sa-password") # this secret scope is set up to enable testing only in Databricks' internal environment; please set up secret scope with your own credential
 job_json = {
         "timeout_seconds": 0,
         "tags":{

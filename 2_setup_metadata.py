@@ -46,7 +46,8 @@ cluster_info = spark.createDataFrame([conv(x) for x in _list])
 cluster_info = cluster_info.where(fx.col("cluster_id") == cluster_id)
 worker_info = cluster_info.select("node_type_id", "num_workers", "spark_version", "creator_user_name").collect()
 node_type_id = worker_info[0].node_type_id
-n_workers = worker_info[0].num_workers
+#n_workers = worker_info[0].num_workers
+n_workers = 2
 spark_version = worker_info[0].spark_version
 creator_user_name = worker_info[0].creator_user_name
 
@@ -85,14 +86,53 @@ schema = StructType([StructField("datetime", TimestampType(), True),
 node_to_core_mapping = {"r5d.2xlarge": 8,
                         "r5d.4xlarge": 16, 
                         "c5d.2xlarge": 8, 
-                        "i3.xlarge": 4, 
+                        "i3.xlarge": 2, 
+                        "i3.2xlarge": 4,
+                        "i3.4xlarge": 8,
+                        "i3.8xlarge": 16,
+                        "i3.16xlarge": 32,
+                        "i4i.xlarge": 2,
+                        "i4i.2xlarge": 4,
+                        "i4i.4xlarge": 8,
+                        "i4i.8xlarge": 16,
+                        "i4i.16xlarge": 32, 
                         "Standard_DS3_v2": 4,
                         "Standard_DS4_v2": 8,
                         "Standard_E4d_v4": 4,
                         "Standard_E8s_v3": 8,
                         "Standard_L8s_v2": 8,
-                        "Standard_L64s_v2": 64
+                        "Standard_L64s_v2": 64,
+                        "m6gd.4xlarge": 16,
+                        "m6gd.8xlarge": 32,
+                        "r6gd.4xlarge": 16
                        } 
+
+
+# #TODO add GCP
+# node_to_core_mapping = {"r5d.2xlarge": 8,
+#                         "r5d.4xlarge": 16, 
+#                         "c5d.2xlarge": 8, 
+#                         "i3.xlarge": 4, 
+#                         "i3.2xlarge": 4, 
+#                         "i3.4xlarge": 8, 
+#                         "i3.8xlarge": 16,                         
+#                         "i3.16xlarge": 32,
+#                         "i3en.xlarge": 4, 
+#                         "i3en.2xlarge": 6, 
+#                         "i3en.4xlarge": 12, 
+#                         "i3en.8xlarge": 24,                         
+#                         "i3en.16xlarge": 48,  
+#                         "i4i.4xlarge": 8, 
+#                         "i4i.8xlarge": 16, 
+#                         "i4i.16xlarge": 32, 
+#                         "i4i.32xlarge": 64, 
+#                         "Standard_DS3_v2": 4,
+#                         "Standard_DS4_v2": 8,
+#                         "Standard_E4d_v4": 4,
+#                         "Standard_E8s_v3": 8,
+#                         "Standard_L8s_v2": 8,
+#                         "Standard_L64s_v2": 64
+#                        } 
 
 # COMMAND ----------
 

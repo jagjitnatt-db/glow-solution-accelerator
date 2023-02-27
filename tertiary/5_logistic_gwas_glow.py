@@ -70,7 +70,9 @@ offsets.head(5)
 
 # COMMAND ----------
 
-contigs = ['21', '22']
+contigs = ['1', '22']
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
+spark.conf.set("spark.databricks.photon.scan.batchSize", 25)
 
 # COMMAND ----------
 
@@ -79,7 +81,7 @@ start_time_logreg = time.time()
 for num, contig in enumerate(contigs):
   offsets_chr = offsets[offsets['contigName'] == contig].drop(['contigName'], axis=1) 
   results = glow.gwas.logistic_regression(
-    delta_vcf.where(fx.col('contigName') == contig),
+    delta_vcf.where(fx.col('contigName') == contig).repartition(10000),
     phenotypes,
     covariates,
     offsets_chr,
