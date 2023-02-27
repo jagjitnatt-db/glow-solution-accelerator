@@ -39,6 +39,7 @@
 # COMMAND ----------
 
 spark.conf.set("spark.sql.codegen.wholeStage", True)
+spark.conf.set("spark.sql.parquet.columnarReaderBatchSize", 20)
 
 # COMMAND ----------
 
